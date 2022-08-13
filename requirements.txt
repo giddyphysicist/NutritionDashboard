@@ -245,7 +245,6 @@ Rtree==0.9.7
 s3transfer==0.5.0
 scikit-image==0.19.2
 scikit-learn==1.0.2
-scikit-learn-intelex==2021.20220215.132722
 scipy==1.7.3
 Scrapy==2.6.1
 scs==3.2.0
