@@ -32,6 +32,8 @@ P = np.random.choice([0,1],NUMBER_OF_FOODS,p=[0.55,0.45])
 # all food vectors:
 foodVectorsFig = plt.figure(figsize=(9,9))
 plt.quiver([0]*NUMBER_OF_FOODS,[0]*NUMBER_OF_FOODS,B[:,0],B[:,1],units='xy',angles='xy',scale=1,scale_units='xy')
+for i,v in enumerate(B):
+    plt.annotate(f'$f_{i}$', xy=v, xytext=v)
 plt.xlim([-0.05,1.05])
 plt.ylim([-0.05,1.05])
 plt.xlabel('nutrient axis 1')
@@ -67,7 +69,8 @@ plt.show()
 
 # plot scaled solution vectors
 
-solutionFig = plt.figure(figsize=(8,8))
+solutionFig,ax = plt.subplots(figsize=(8,8))
+plt.subplot(221)
 plt.quiver([0]*len(validFoods),
            [0]*len(validFoods),
            np.array(validVectors)[:,0],
@@ -86,6 +89,21 @@ plt.quiver([0],
            scale=1,
            scale_units='xy',
            color='g')
+for vf,vv in zip(validFoods,validVectors):
+    plt.annotate(f'$f_{vf[0]}$', xy=vv, xytext=vv)
+plt.xlim([-0.05,1.55])
+plt.ylim([-0.05,1.55])
+plt.grid('both')
+plt.fill_between([0,1],[1,1],color='g',alpha=0.2)
+plt.xlabel('nutrient axis 1')
+plt.ylabel('nutrient axis 2')
+plt.show()
+plt.subplot(222)
+currentSum = np.array([0,0])
+for i,vv in enumerate(validVectors):
+    plt.quiver(*currentSum,*validVectors[i], units='xy',angles='xy',scale=1,scale_units='xy',color='gray')
+    currentSum = currentSum + validVectors[i]
+
 plt.xlim([-0.05,1.55])
 plt.ylim([-0.05,1.55])
 plt.grid('both')
