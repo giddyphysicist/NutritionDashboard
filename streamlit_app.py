@@ -1,3 +1,4 @@
+from tkinter import N
 import streamlit as st
 
 import matplotlib.pyplot as plt
@@ -8,109 +9,114 @@ st.set_page_config(page_title='Nutrition Dashboard',
                           page_icon="🍔",
                           initial_sidebar_state='auto')
 
+# Initial Random Seed:
+# np.random.seed(1000)
 
-# initialize random seed:
-np.random.seed(1000)
+def buildInputs():
+    # initialize number of foods:
+    NUMBER_OF_FOODS = 7
 
-# initialize number of foods:
-NUMBER_OF_FOODS = 7
+    # initialize max number of servings per day:
+    MAX_SERVINGS_PER_DAY = 10
 
-# initialize max number of servings per day:
-MAX_SERVINGS_PER_DAY = 10
+    # initialize penalty coefficient, alpha
+    ALPHA = NUMBER_OF_FOODS
 
-# initialize penalty coefficient, alpha
-ALPHA = NUMBER_OF_FOODS
+    # Assume 2D Nutrient Space.
 
-# Assume 2D Nutrient Space.
+    MaxNormalizedValue = [3,4] # normalized max value along each axis
+    B = np.random.rand(NUMBER_OF_FOODS,2) # buffet of food vectors
 
-MaxNormalizedValue = [3,4] # normalized max value along each axis
-B = np.random.rand(NUMBER_OF_FOODS,2) # buffet of food vectors
+    P = np.random.choice([0,1],NUMBER_OF_FOODS,p=[0.55,0.45])
 
-P = np.random.choice([0,1],NUMBER_OF_FOODS,p=[0.55,0.45])
-
-
-# all food vectors:
-foodVectorsFig = plt.figure(figsize=(9,9))
-plt.quiver([0]*NUMBER_OF_FOODS,[0]*NUMBER_OF_FOODS,B[:,0],B[:,1],units='xy',angles='xy',scale=1,scale_units='xy')
-for i,v in enumerate(B):
-    plt.annotate(f'$f_{i}$', xy=v, xytext=v)
-plt.xlim([-0.05,1.05])
-plt.ylim([-0.05,1.05])
-plt.xlabel('nutrient axis 1')
-plt.ylabel('nutrient axis 2')
-plt.grid('both')
-plt.show()
+    return NUMBER_OF_FOODS, MAX_SERVINGS_PER_DAY, ALPHA, MaxNormalizedValue, B, P
 
 
-# run optimization
-nn = cp.Variable(NUMBER_OF_FOODS)
+def makeFoodVectorsFig(NUMBER_OF_FOODS,B):
+    # all food vectors:
+    foodVectorsFig = plt.figure(figsize=(9,9))
+    plt.quiver([0]*NUMBER_OF_FOODS,[0]*NUMBER_OF_FOODS,B[:,0],B[:,1],units='xy',angles='xy',scale=1,scale_units='xy')
+    for i,v in enumerate(B):
+        plt.annotate(f'$f_{i}$', xy=v, xytext=v)
+    plt.xlim([-0.05,1.05])
+    plt.ylim([-0.05,1.05])
+    plt.xlabel('nutrient axis 1')
+    plt.ylabel('nutrient axis 2')
+    plt.grid('both')
+    return foodVectorsFig
+    # plt.show()
 
-prob = cp.Problem(cp.Maximize(nn.T@P - ALPHA*cp.sum(cp.abs(nn))),
-                  [nn>= 0, nn.T@B>=1,nn.T@B<=MaxNormalizedValue,sum(nn)<=MAX_SERVINGS_PER_DAY])
-prob.solve()
-print(f'Servings Vector is... {nn.value}')
-print(f'Sum of Servings Vector is... {sum(nn.value)}')
+def runOptimization(NUMBER_OF_FOODS, MAX_SERVINGS_PER_DAY, ALPHA, MaxNormalizedValue, B, P):
+    # run optimization
+    nn = cp.Variable(NUMBER_OF_FOODS)
 
-validFoods = [(i,x) for i,x in enumerate(nn.value) if x>0.1]
-print(validFoods)
-validVectors = np.array([m*B[k,:] for k,m in [x for x in validFoods]])
-print(validVectors)
+    prob = cp.Problem(cp.Maximize(nn.T@P - ALPHA*cp.sum(cp.abs(nn))),
+                    [nn>= 0, nn.T@B>=1,nn.T@B<=MaxNormalizedValue,sum(nn)<=MAX_SERVINGS_PER_DAY])
+    prob.solve()
+    print(f'Servings Vector is... {nn.value}')
+    print(f'Sum of Servings Vector is... {sum(nn.value)}')
+
+    validFoods = [(i,x) for i,x in enumerate(nn.value) if x>0.1]
+    print(validFoods)
+    validVectors = np.array([m*B[k,:] for k,m in [x for x in validFoods]])
+    print(validVectors)
+    return validFoods,validVectors,nn
+
+def makeStemPlotSolutionFig(nn):
+    # stem-plot solution servings vector
+    stemPlotFig = plt.figure(figsize=(8,4))
+    plt.stem(nn.value)
+    plt.xlabel('Food Vector ID')
+    plt.ylabel('Number of Servings')
+    plt.title('Solution')
+    plt.grid('both')
+    return stemPlotFig
 
 
-# stem-plot solution servings vector
+def makeSolutionVectorsFig(validFoods,validVectors):
+    # plot scaled solution vectors
+    solutionFig,ax = plt.subplots(figsize=(8,8))
+    plt.subplot(221)
+    plt.quiver([0]*len(validFoods),
+            [0]*len(validFoods),
+            np.array(validVectors)[:,0],
+            np.array(validVectors)[:,1],
+            units='xy',
+            angles='xy',
+            scale=1,
+            scale_units='xy')
+    sumVector = np.sum(validVectors,axis=0)
+    plt.quiver([0],
+            [0],
+            [sumVector[0]],
+            [sumVector[1]],
+            units='xy',
+            angles='xy',
+            scale=1,
+            scale_units='xy',
+            color='g')
+    for vf,vv in zip(validFoods,validVectors):
+        plt.annotate(f'$f_{vf[0]}$', xy=vv, xytext=vv)
+    plt.xlim([-0.05,1.55])
+    plt.ylim([-0.05,1.55])
+    plt.grid('both')
+    plt.fill_between([0,1],[1,1],color='g',alpha=0.2)
+    plt.xlabel('nutrient axis 1')
+    plt.ylabel('nutrient axis 2')
+    plt.show()
+    plt.subplot(222)
+    currentSum = np.array([0,0])
+    for i,vv in enumerate(validVectors):
+        plt.quiver(*currentSum,*validVectors[i], units='xy',angles='xy',scale=1,scale_units='xy',color='gray')
+        currentSum = currentSum + validVectors[i]
 
-stemPlotFig = plt.figure(figsize=(8,4))
-plt.stem(nn.value)
-plt.xlabel('Food Vector ID')
-plt.ylabel('Number of Servings')
-plt.title('Solution')
-plt.grid('both')
-plt.show()
-
-# plot scaled solution vectors
-
-solutionFig,ax = plt.subplots(figsize=(8,8))
-plt.subplot(221)
-plt.quiver([0]*len(validFoods),
-           [0]*len(validFoods),
-           np.array(validVectors)[:,0],
-           np.array(validVectors)[:,1],
-           units='xy',
-           angles='xy',
-           scale=1,
-           scale_units='xy')
-sumVector = np.sum(validVectors,axis=0)
-plt.quiver([0],
-           [0],
-           [sumVector[0]],
-           [sumVector[1]],
-           units='xy',
-           angles='xy',
-           scale=1,
-           scale_units='xy',
-           color='g')
-for vf,vv in zip(validFoods,validVectors):
-    plt.annotate(f'$f_{vf[0]}$', xy=vv, xytext=vv)
-plt.xlim([-0.05,1.55])
-plt.ylim([-0.05,1.55])
-plt.grid('both')
-plt.fill_between([0,1],[1,1],color='g',alpha=0.2)
-plt.xlabel('nutrient axis 1')
-plt.ylabel('nutrient axis 2')
-plt.show()
-plt.subplot(222)
-currentSum = np.array([0,0])
-for i,vv in enumerate(validVectors):
-    plt.quiver(*currentSum,*validVectors[i], units='xy',angles='xy',scale=1,scale_units='xy',color='gray')
-    currentSum = currentSum + validVectors[i]
-
-plt.xlim([-0.05,1.55])
-plt.ylim([-0.05,1.55])
-plt.grid('both')
-plt.fill_between([0,1],[1,1],color='g',alpha=0.2)
-plt.xlabel('nutrient axis 1')
-plt.ylabel('nutrient axis 2')
-plt.show()
+    plt.xlim([-0.05,1.55])
+    plt.ylim([-0.05,1.55])
+    plt.grid('both')
+    plt.fill_between([0,1],[1,1],color='g',alpha=0.2)
+    plt.xlabel('nutrient axis 1')
+    plt.ylabel('nutrient axis 2')
+    return solutionFig
 
 
 def IntroMaterial():
@@ -196,24 +202,34 @@ In terms of solving the optimization problem, I'm not sure if it can be describe
 
 def app():
     st.title('Nutrition Dashboard')
+    NEW_FLAG = True
+    clicked =  st.button('change random seed')
+    
     with st.expander('Model Info'):
         IntroMaterial()
         OptimizationInfo()
 
-    st.markdown('Consider trying to optimize for two nutrients:')
-    st.pyplot(foodVectorsFig)
-    
-    st.markdown('Solution in servings per food item:')
-    st.pyplot(stemPlotFig)
+    if NEW_FLAG or clicked:
+        NUMBER_OF_FOODS, MAX_SERVINGS_PER_DAY, ALPHA, MaxNormalizedValue, B, P = buildInputs()
+        foodVectorsFig = makeFoodVectorsFig(NUMBER_OF_FOODS,B)
+        validFoods,validVectors,nn = runOptimization(NUMBER_OF_FOODS, MAX_SERVINGS_PER_DAY, ALPHA, MaxNormalizedValue, B, P)
+        
+        st.markdown('Consider trying to optimize for two nutrients, given the following food vectors:')
+        st.pyplot(foodVectorsFig)
+        
+        stemPlotFig = makeStemPlotSolutionFig(nn)
+        solutionFig = makeSolutionVectorsFig(validFoods,validVectors)
+        st.markdown('Solution in servings per food item:')
+        st.pyplot(stemPlotFig)
 
-    st.markdown('Solution ')
-    st.pyplot(solutionFig)
+        st.markdown('Solution ')
+        st.pyplot(solutionFig)
 
-    with st.sidebar:
-        st.markdown('Can use this area for inputs, maybe.')
-        options = st.multiselect(
-                                'Choose your favorite foods',
-                                [f'Food{i}' for i in range(1,8)])
+        with st.sidebar:
+            st.markdown('Can use this area for inputs, maybe.')
+            options = st.multiselect(
+                                    'Choose your favorite foods',
+                                    [f'Food{i}' for i in range(1,8)])
     
 
 if __name__=='__main__':
