@@ -31,7 +31,7 @@ The goal is to find (at least one) minimum spanning set of food vectors for fall
 
 
 ## Objective and Constraints
-Suppose we have a buffet $B$ of $M$ different possible food vectors ($ \vec{f_1}  ,  \vec{f_2}  ,  \vec{f_3}  , ... , \vec{f_M} $ )
+Suppose we have a buffet $B$ of $M$ different possible food vectors ( $ \vec{f_1}  ,  \vec{f_2}  ,  \vec{f_3}  , ... , \vec{f_M} $ )
 
 $$B = \left(  \vec{f_1},\vec{f_2},\vec{f_2}, ... , \vec{f_M}  \right)$$
 
