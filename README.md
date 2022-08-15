@@ -50,20 +50,17 @@ Given this, we want to think about what contraints exist.
 4. $\left( \sum_i{n_i \vec{f_i}} \right) \cdot a_j \leq X_j$, for all nutrient axes $a_j$. This says that the the projection magnitude (dot product) of the sum of servings of all food vectors relative to each nutrient axis has to be less than $X_j$, or less than the normalized maximum daily value.
 Now we want to set up an objective function. With enough foods, it is currently an under-constrained problem. We will use the $\vec{P}$, $\vec{G}$, and $\vec{S}$ vectors for defining different objective functions to optimize.
 For the simplest optimization, we could choose based on maximizing the value of the overlap of $\vec{N}$ with one of the above vectors:
-$$
-f_{obj,1} = \vec{N} \cdot \vec{P}
-$$
-$$
-f_{obj,2} = \vec{N} \cdot \vec{G}
-$$
-$$
-f_{obj,3} = - \vec{N} \cdot \vec{S}
-$$
+
+$$f_{obj,1} = \vec{N} \cdot \vec{P}$$
+
+$$f_{obj,2} = \vec{N} \cdot \vec{G}$$
+
+$$f_{obj,3} = - \vec{N} \cdot \vec{S}$$
+
 Note that we added a negative sign to the last function since we'd actually want to minimize the amount of garden space required per food.
 We might also want to add in a penalty factor for when too many foods are used. That is, we'd like a minimum spanning set. So you could add in a negative term to any of the above objective functions, and have it look something like:
-$$
-f_{obj,penalty} = - \alpha \lvert \vec{N} \rvert,
-$$
+
+$$f_{obj,penalty} = - \alpha \lvert \vec{N} \rvert,$$
 where $\alpha$ is a tunable positive parameter. 
 In terms of solving the optimization problem, I'm not sure if it can be described as 'convex' or not, but there if it is, there is a nice python library called ```cvxpy``` that we could use.
     
