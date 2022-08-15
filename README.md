@@ -32,13 +32,13 @@ The goal is to find (at least one) minimum spanning set of food vectors for fall
 
 ## Objective and Constraints
 Suppose we have a buffet $B$ of $M$ different possible food vectors ($ \vec{f_1} $ , $ \vec{f_2} $ , $ \vec{f_3} $ , ... ,$ \vec{f_M} $ )
-$$
-B = \left(  \vec{f_1},\vec{f_2},\vec{f_2}, ... , \vec{f_M}  \right)
-$$
+
+$$B = \left(  \vec{f_1},\vec{f_2},\vec{f_2}, ... , \vec{f_M}  \right)$$
+
 We want to specify an $M$-dimensional "servings vector", $\vec{N}$, that specifies the number of servings of each corresponding food vector to eat in one day to obtain a complete nutrition profile.
-$$
-\vec{N} = \langle n_1, n_2, n_3, ..., n_M \rangle
-$$
+
+$$\vec{N} = \langle n_1, n_2, n_3, ..., n_M \rangle$$
+
 Suppose we also define the following $M$-dimensional vectors:
 1. $\vec{P}\equiv$ Preference vector -- score factor per food representing the user's taste preferences.
 2. $\vec{G}\equiv$ Growability vector -- score factor per food representing the regional constranints for growing food for the user
